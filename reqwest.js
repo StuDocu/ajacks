@@ -12,6 +12,17 @@
 
   var context = this
 
+  function assign(r) {
+      var args = [].slice.call(arguments, 0);
+      for (var i = 1; i < args.length; ++i) {
+          var s = args[i];
+          for (var p in s) {
+              r[p] = s[p];
+          }
+      }
+      return r;
+  }
+
   if ('window' in context) {
     var doc = document
       , byTag = 'getElementsByTagName'
@@ -243,6 +254,9 @@
   }
 
   function Reqwest(o, fn) {
+    if(typeof o !== "string") {
+      o = assign({}, o, globalSetupOptions);
+    }
     this.o = o
     this.fn = fn
 
@@ -316,7 +330,8 @@
       var type = o['type'] || resp && setType(resp.getResponseHeader('Content-Type')) // resp can be undefined in IE
       resp = (type !== 'jsonp') ? self.request : resp
       // use global data filter on response text
-      var filteredResponse = globalSetupOptions.dataFilter(resp.responseText, type)
+      alert(o.dataFilter);
+      var filteredResponse = (o.dataFilter || globalSetupOptions.dataFilter)(resp.responseText, type)
         , r = filteredResponse
       try {
         resp.responseText = r
