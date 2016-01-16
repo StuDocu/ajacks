@@ -9,7 +9,7 @@ phantom.stdout.on('data', function (data) {
 
 phantom.on('exit', function (code, signal) {
   var outcome = code == 0 ? 'passed' : 'failed'
-  console.log('Reqwest tests have %s', outcome, code)
+  console.log('Ajacks tests have %s', outcome, code)
   server.kill('SIGHUP')
   process.exit(code)
 })

@@ -1,5 +1,5 @@
 /*jshint maxlen:80*/
-/*global reqwest:true, sink:true, start:true, ender:true, v:true, boosh:true*/
+/*global Ajacks:true, sink:true, start:true, v:true, boosh:true*/
 
 (function (ajax) {
   var BIND_ARGS = 'bind'
@@ -89,8 +89,8 @@
 
     test('JSONP', function (complete) {
       // stub callback prefix
-      reqwest.getcallbackPrefix = function (id) {
-        return 'reqwest_' + id
+      Ajacks.getcallbackPrefix = function (id) {
+        return 'ajacks_' + id
       }
       ajax({
           url: '/tests/fixtures/fixtures_jsonp.jsonp?callback=?'
@@ -300,12 +300,12 @@
           // should append data and match callback correctly
           url: '/tests/none.jsonp?callback=?'
         , type: 'jsonp'
-        , jsonpCallbackName: 'reqwest_foo'
+        , jsonpCallbackName: 'ajacks_foo'
         , data: { foo: 'bar', boo: 'baz', echo: true }
         , success: function (resp) {
             ok(resp && resp.query, 'received response from echo callback')
             ok(
-                resp && resp.query && resp.query.callback == 'reqwest_foo'
+                resp && resp.query && resp.query.callback == 'ajacks_foo'
               , 'correctly matched callback in URL'
             )
             complete()
@@ -371,7 +371,7 @@
 
     test('multiple parallel named JSONP callbacks', 8, function () {
       ajax({
-          url: '/tests/fixtures/fixtures_jsonp_multi.jsonp?callback=reqwest_0'
+          url: '/tests/fixtures/fixtures_jsonp_multi.jsonp?callback=ajacks_0'
         , type: 'jsonp'
         , success: function (resp) {
             ok(resp, 'received response from call #1')
@@ -382,7 +382,7 @@
           }
       })
       ajax({
-          url: '/tests/fixtures/fixtures_jsonp_multi_b.jsonp?callback=reqwest_0'
+          url: '/tests/fixtures/fixtures_jsonp_multi_b.jsonp?callback=ajacks_0'
         , type: 'jsonp'
         , success: function (resp) {
             ok(resp, 'received response from call #2')
@@ -393,7 +393,7 @@
           }
       })
       ajax({
-          url: '/tests/fixtures/fixtures_jsonp_multi_c.jsonp?callback=reqwest_0'
+          url: '/tests/fixtures/fixtures_jsonp_multi_c.jsonp?callback=ajacks_0'
         , type: 'jsonp'
         , success: function (resp) {
             ok(resp, 'received response from call #2')
@@ -404,7 +404,7 @@
           }
       })
       ajax({
-          url: '/tests/fixtures/fixtures_jsonp_multi.jsonp?callback=reqwest_0'
+          url: '/tests/fixtures/fixtures_jsonp_multi.jsonp?callback=ajacks_0'
         , type: 'jsonp'
         , success: function (resp) {
             ok(resp, 'received response from call #2')
@@ -513,7 +513,7 @@
   sink('Connection Object', function (test, ok) {
 
     test('use xhr factory provided in the options', function (complete) {
-      var reqwest
+      var Ajacks
       , xhr
 
       if (typeof XMLHttpRequest !== 'undefined') {
@@ -524,30 +524,30 @@
         ok(false, 'browser not supported')
       }
 
-      reqwest = ajax({
+      Ajacks = ajax({
           url: '/tests/fixtures/fixtures.html',
           xhr: function () {
             return xhr
           }
       })
 
-      ok(reqwest.request === xhr, 'uses factory')
+      ok(Ajacks.request === xhr, 'uses factory')
       complete()
     })
 
     test('fallbacks to own xhr factory if falsy is returned', function (complete) {
-      var reqwest
+      var Ajacks
 
       FakeXHR.setup()
       try {
-        reqwest = ajax({
+        Ajacks = ajax({
             url: '/tests/fixtures/fixtures.html',
             xhr: function () {
               return null
             }
         })
 
-        ok(reqwest.request instanceof FakeXHR, 'fallbacks correctly')
+        ok(Ajacks.request instanceof FakeXHR, 'fallbacks correctly')
         complete()
       } finally {
         FakeXHR.restore()
@@ -750,14 +750,6 @@
         , success: function (resp) {
             ok(methodMatch(resp, 'GET'), 'correct request method (GET)')
             ok(
-                headerMatch(
-                    resp
-                  , 'content-type'
-                  , 'application/x-www-form-urlencoded'
-                )
-              , 'correct Content-Type request header'
-            )
-            ok(
                 headerMatch(resp, 'x-requested-with', 'XMLHttpRequest')
               , 'correct X-Requested-With header'
             )
@@ -782,7 +774,7 @@
             ok(methodMatch(resp, 'GET'), 'correct request method (GET)')
             ok(
                 headerMatch(resp, 'content-type', 'yapplication/foobar')
-              , 'correct Content-Type request header'
+                , 'correct Content-Type request header'
             )
             ok(
                 headerMatch(resp, 'x-requested-with', 'XMLHttpRequest')
@@ -816,14 +808,6 @@
         , dataType: 'json' // should map to 'type'
         , success: function (resp) {
             ok(methodMatch(resp, 'GET'), 'correct request method (GET)')
-            ok(
-                headerMatch(
-                    resp
-                  , 'content-type'
-                  , 'application/x-www-form-urlencoded'
-                )
-              , 'correct Content-Type request header'
-            )
             ok(
                 headerMatch(resp, 'x-requested-with', 'XMLHttpRequest')
               , 'correct X-Requested-With header'
@@ -877,14 +861,6 @@
         , headers: { one: 1, two: 2 }
         , success: function (resp) {
             ok(
-                headerMatch(
-                    resp
-                  , 'content-type'
-                  , 'application/x-www-form-urlencoded'
-                )
-              , 'correct Content-Type request header'
-            )
-            ok(
                 headerMatch(resp, 'x-requested-with', 'XMLHttpRequest')
               , 'correct X-Requested-With header'
             )
@@ -924,8 +900,7 @@
 
   /***************** SERIALIZER TESTS ***********************/
 
-  // define some helpers for the serializer tests that are used often and
-  // shared with the ender integration tests
+  // define some helpers for the serializer tests that are used often
 
   function createSerializeHelper(ok) {
     var forms = document.forms
@@ -1010,7 +985,7 @@
 
     function executeMultiArgumentMethod(method, argType, options) {
       var els = [ foo, bar, choices ]
-        , ths = argType === BIND_ARGS ? ender(els) : null
+        , ths = argType === BIND_ARGS ? null : null
         , args = argType === PASS_ARGS ? els : []
 
       if (!!options) args.push(options)
@@ -1144,12 +1119,12 @@
 
     /*
      * Serialize forms according to spec.
-     *  * reqwest.serialize(ele[, ele...]) returns a query string style
+     *  * Ajacks.serialize(ele[, ele...]) returns a query string style
      *    serialization
-     *  * reqwest.serialize(ele[, ele...], {type:'array'}) returns a
+     *  * Ajacks.serialize(ele[, ele...], {type:'array'}) returns a
      *    [ { name: 'name', value: 'value'}, ... ] style serialization,
      *    compatible with jQuery.serializeArray()
-     *  * reqwest.serialize(ele[, ele...], {type:\'map\'}) returns a
+     *  * Ajacks.serialize(ele[, ele...], {type:\'map\'}) returns a
      *    { 'name': 'value', ... } style serialization, compatible with
      *    Prototype Form.serializeElements({hash:true})
      * Some tests based on spec notes here:
@@ -1423,38 +1398,6 @@
       complete()
     })
 
-    // mainly for Ender integration, so you can do this:
-    // $('input[name=T2],input[name=who],input[name=wha]').serialize()
-    test('serialize(element, element, element...)', function (complete) {
-      sHelper.testMultiArgumentSerialize(ajax.serialize, 'direct', PASS_ARGS)
-      complete()
-    })
-
-    // mainly for Ender integration, so you can do this:
-    // $('input[name=T2],input[name=who],input[name=wha]')
-    //    .serialize({type:'array'})
-    test('serialize(element, element, element..., {type:\'array\'})'
-        , function (complete) {
-      sHelper.testMultiArgumentSerializeArray(
-          ajax.serialize
-        , 'direct'
-        , PASS_ARGS
-      )
-      complete()
-    })
-
-    // mainly for Ender integration, so you can do this:
-    // $('input[name=T2],input[name=who],input[name=wha]')
-    //     .serialize({type:'map'})
-    test('serialize(element, element, element...)', function (complete) {
-      sHelper.testMultiArgumentSerializeHash(
-          ajax.serialize
-        , 'direct'
-        , PASS_ARGS
-      )
-      complete()
-    })
-
     test('toQueryString([{ name: x, value: y }, ... ]) name/value array'
         , function (complete) {
 
@@ -1517,103 +1460,6 @@
     })
 
   })
-
-  sink('Ender Integration', function (test, ok) {
-    var sHelper = createSerializeHelper(ok)
-    sHelper.reset()
-
-    test('$.ajax alias for reqwest, not bound to boosh', 1, function () {
-      ok(ender.ajax === ajax, '$.ajax is reqwest')
-    })
-
-    // sHelper.test that you can do $.serialize(form)
-    test('$.serialize(form)', function (complete) {
-      sHelper.testFormSerialize(ender.serialize, 'ender')
-      complete()
-    })
-
-    // sHelper.test that you can do $.serialize(form)
-    test('$.serialize(form, {type:\'array\'})', function (complete) {
-      sHelper.testFormSerializeArray(ender.serialize, 'ender')
-      complete()
-    })
-
-    // sHelper.test that you can do $.serialize(form)
-    test('$.serialize(form, {type:\'map\'})', function (complete) {
-      sHelper.testFormSerializeHash(ender.serialize, 'ender')
-      complete()
-    })
-
-    // sHelper.test that you can do $.serializeObject(form)
-    test('$.serializeArray(...) alias for serialize(..., {type:\'map\'}'
-        , function (complete) {
-      sHelper.verifyFormSerializeArray(
-          ender.serializeArray(document.forms[0])
-        , 'ender'
-      )
-      complete()
-    })
-
-    test('$.serialize(element, element, element...)', function (complete) {
-      sHelper.testMultiArgumentSerialize(ender.serialize, 'ender', PASS_ARGS)
-      complete()
-    })
-
-    test('$.serialize(element, element, element..., {type:\'array\'})'
-        , function (complete) {
-      sHelper.testMultiArgumentSerializeArray(
-          ender.serialize
-        , 'ender'
-        , PASS_ARGS
-      )
-      complete()
-    })
-
-    test('$.serialize(element, element, element..., {type:\'map\'})'
-        , function (complete) {
-      sHelper.testMultiArgumentSerializeHash(
-          ender.serialize
-        , 'ender'
-        , PASS_ARGS
-      )
-      complete()
-    })
-
-    test('$(element, element, element...).serialize()', function (complete) {
-      sHelper.testMultiArgumentSerialize(ender.fn.serialize, 'ender', BIND_ARGS)
-      complete()
-    })
-
-    test('$(element, element, element...).serialize({type:\'array\'})'
-        , function (complete) {
-      sHelper.testMultiArgumentSerializeArray(
-          ender.fn.serialize
-        , 'ender'
-        , BIND_ARGS
-      )
-      complete()
-    })
-
-    test('$(element, element, element...).serialize({type:\'map\'})'
-        , function (complete) {
-      sHelper.testMultiArgumentSerializeHash(
-          ender.fn.serialize
-        , 'ender'
-        , BIND_ARGS
-      )
-      complete()
-    })
-
-    test('$.toQueryString alias for reqwest.toQueryString, not bound to boosh'
-          , function (complete) {
-      ok(
-          ender.toQueryString === ajax.toQueryString
-        , '$.toQueryString is reqwest.toQueryString'
-      )
-      complete()
-    })
-  })
-
 
   /**
    * Promise tests for `then` `fail` and `always`
@@ -1832,4 +1678,4 @@
 
   start()
 
-}(reqwest))
+}(Ajacks))

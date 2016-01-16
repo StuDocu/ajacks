@@ -2,7 +2,7 @@
   if (typeof module != 'undefined' && module.exports) module.exports = definition()
   else if (typeof define == 'function' && define.amd) define(definition)
   else context[name] = definition()
-}('reqwest', this, function () {
+}('Ajacks', this, function () {
 
   var context = this
 
@@ -32,12 +32,13 @@
 
   var httpsRe = /^http/
     , protocolRe = /(^\w+):\/\//
-    , twoHundo = /^(20\d|1223)$/ //http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+    , twoHundo = /^(20\d|1223)$/
+    //http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
     , readyState = 'readyState'
     , contentType = 'Content-Type'
     , requestedWith = 'X-Requested-With'
     , uniqid = 0
-    , callbackPrefix = 'reqwest_' + (+new Date())
+    , callbackPrefix = 'ajacks_' + (+new Date())
     , lastValue // data stored by the most recent JSONP callback
     , xmlHttpRequest = 'XMLHttpRequest'
     , xDomainRequest = 'XDomainRequest'
@@ -146,7 +147,7 @@
   function handleJsonp(o, fn, err, url) {
     var reqId = uniqid++
       , cbkey = o['jsonpCallback'] || 'callback' // the 'callback' key
-      , cbval = o['jsonpCallbackName'] || reqwest.getcallbackPrefix(reqId)
+      , cbval = o['jsonpCallbackName'] || Ajacks.getcallbackPrefix(reqId)
       , cbreg = new RegExp('((^|\\?|&)' + cbkey + ')=([^&]+)')
       , match = url.match(cbreg)
       , script = doc.createElement('script')
@@ -172,7 +173,7 @@
       // need this for IE due to out-of-order onreadystatechange(), binding script
       // execution to an event listener gives us control over when the script
       // is executed. See http://jaubourg.net/2010/07/loading-script-as-onclick-handler-of.html
-      script.htmlFor = script.id = '_reqwest_' + reqId
+      script.htmlFor = script.id = '_ajacks_' + reqId
     }
 
     script.onload = script.onreadystatechange = function () {
@@ -209,7 +210,7 @@
       , url = typeof o === 'string' ? o : o['url']
       // convert non-string objects to query-string form unless o['processData'] is false
       , data = (o['processData'] !== false && o['data'] && typeof o['data'] !== 'string')
-        ? reqwest.toQueryString(o['data'])
+        ? Ajacks.toQueryString(o['data'])
         : (o['data'] || null)
       , http
       , sendWait = false
@@ -251,7 +252,7 @@
     return http
   }
 
-  function Reqwest(o, fn) {
+  function AjacksTemp(o, fn) {
     if (typeof o !== 'string') {
       o = assign({}, o, globalSetupOptions);
     }
@@ -392,7 +393,7 @@
     this.request = getRequest.call(this, success, error)
   }
 
-  Reqwest.prototype = {
+  AjacksTemp.prototype = {
     abort: function () {
       this._aborted = true
       this.request.abort()
@@ -452,8 +453,8 @@
     }
   }
 
-  function reqwest(o, fn) {
-    return new Reqwest(o, fn)
+  function Ajacks(o, fn) {
+    return new AjacksTemp(o, fn)
   }
 
   // normalize newline variants according to spec -> CRLF
@@ -523,7 +524,7 @@
 
   // standard query string style serialization
   function serializeQueryString() {
-    return reqwest.toQueryString(reqwest.serializeArray.apply(null, arguments))
+    return Ajacks.toQueryString(Ajacks.serializeArray.apply(null, arguments))
   }
 
   // { 'name': 'value', ... } style serialization
@@ -539,7 +540,7 @@
   }
 
   // [ { name: 'name', value: 'value' }, ... ] style serialization
-  reqwest.serializeArray = function () {
+  Ajacks.serializeArray = function () {
     var arr = []
     eachFormElement.apply(function (name, value) {
       arr.push({name: name, value: value})
@@ -547,7 +548,7 @@
     return arr
   }
 
-  reqwest.serialize = function () {
+  Ajacks.serialize = function () {
     if (arguments.length === 0) return ''
     var opt, fn
       , args = Array.prototype.slice.call(arguments, 0)
@@ -557,13 +558,13 @@
     opt && (opt = opt.type)
 
     if (opt == 'map') fn = serializeHash
-    else if (opt == 'array') fn = reqwest.serializeArray
+    else if (opt == 'array') fn = Ajacks.serializeArray
     else fn = serializeQueryString
 
     return fn.apply(null, args)
   }
 
-  reqwest.toQueryString = function (o, trad) {
+  Ajacks.toQueryString = function (o, trad) {
     var prefix, i
       , traditional = trad || false
       , s = []
@@ -615,28 +616,28 @@
     }
   }
 
-  reqwest.getcallbackPrefix = function () {
+  Ajacks.getcallbackPrefix = function () {
     return callbackPrefix
   }
 
   // jQuery and Zepto compatibility, differences can be remapped here so you can call
   // .ajax.compat(options, callback)
-  reqwest.compat = function (o, fn) {
+  Ajacks.compat = function (o, fn) {
     if (o) {
       o['type'] && (o['method'] = o['type']) && delete o['type']
       o['dataType'] && (o['type'] = o['dataType'])
       o['jsonpCallback'] && (o['jsonpCallbackName'] = o['jsonpCallback']) && delete o['jsonpCallback']
       o['jsonp'] && (o['jsonpCallback'] = o['jsonp'])
     }
-    return new Reqwest(o, fn)
+    return new AjacksTemp(o, fn)
   }
 
-  reqwest.ajaxSetup = function (options) {
+  Ajacks.ajaxSetup = function (options) {
     options = options || {}
     for (var k in options) {
       globalSetupOptions[k] = options[k]
     }
   }
 
-  return reqwest
+  return Ajacks
 });

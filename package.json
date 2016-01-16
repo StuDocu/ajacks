@@ -1,8 +1,7 @@
 {
-  "name": "reqwest",
+  "name": "ajacks",
   "description": "A wrapper for asynchronous http requests",
   "keywords": [
-    "ender",
     "ajax",
     "xhr",
     "connection",
@@ -10,15 +9,14 @@
     "async",
     "sync"
   ],
-  "version": "2.0.5",
-  "homepage": "https://github.com/ded/reqwest",
-  "author": "Dustin Diaz <dustin@dustindiaz.com> (http://dustindiaz.com)",
+  "version": "1.0.0",
+  "homepage": "https://github.com/StuDocu/ajacks",
+  "author": "Abe Fehr <abe.fehr@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ded/reqwest.git"
+    "url": "https://github.com/StuDocu/ajacks.git"
   },
-  "main": "./reqwest.js",
-  "ender": "./src/ender.js",
+  "main": "./ajacks.js",
   "browser": {
     "xhr2": false
   },
@@ -38,7 +36,7 @@
   },
   "license": "MIT",
   "spm": {
-    "main": "reqwest.js",
+    "main": "ajacks.js",
     "ignore": [
       "vendor",
       "test",
@@ -46,7 +44,7 @@
     ]
   },
   "files": [
-    "reqwest.js",
-    "reqwest.min.js"
+    "ajacks.js",
+    "ajacks.min.js"
   ]
 }
